@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+dist/
+
+# Clasp local config (contains tokens/paths)
+.clasp.json
+
+# Environment and logs
+.env
+*.log
+
+# Ignore everything in the project root...
+/*
+# ...except for these explicitly allowed items
+!/src/
+!/appsscript.json
+!/.gitignore
+!/README.md
+!/.clasp.json.sample
+
+# Local/internal docs and machine artifacts
+**/desktop.ini

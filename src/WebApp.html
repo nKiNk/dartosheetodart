@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DARToSheeToDART</title>
+    <style>
+      :root {
+        --ink: #0a2a66;
+        --ink-2: #1b4fa3;
+        --sky: #2d8de0;
+        --bg: #eef3fb;
+        --line: #bfd0ea;
+        --panel: #ffffff;
+        --ok: #0b8f63;
+        --warn: #c87200;
+        --err: #be2b2b;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
+        background: radial-gradient(circle at 20% 0%, #f6fbff 0%, var(--bg) 55%, #e9f0fb 100%);
+        color: #1d2b44;
+      }
+
+      .shell {
+        max-width: 1080px;
+        margin: 24px auto;
+        padding: 0 20px 24px;
+      }
+
+      .hero {
+        background: linear-gradient(130deg, #ffffff 0%, #f2f7ff 70%);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        box-shadow: 0 12px 30px rgba(30, 70, 135, 0.08);
+        overflow: hidden;
+      }
+
+      .hero-head {
+        display: flex;
+        gap: 18px;
+        align-items: center;
+        padding: 22px 24px 10px;
+      }
+
+      .hero-head img {
+        width: 170px;
+        height: auto;
+      }
+
+      .hero-title {
+        margin: 0;
+        color: var(--ink);
+        font-size: 34px;
+        letter-spacing: 0.4px;
+      }
+
+      .hero-sub {
+        margin: 0;
+        color: var(--sky);
+        font-size: 30px;
+        font-weight: 700;
+        letter-spacing: -0.4px;
+        line-height: 1.2;
+        padding: 8px 24px 24px;
+      }
+
+      .grid {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 18px;
+      }
+
+      .card h3 {
+        margin: 0 0 8px;
+        color: var(--ink);
+        font-size: 18px;
+      }
+
+      .card p {
+        margin: 0 0 12px;
+        color: #4a6288;
+        font-size: 13px;
+      }
+
+      label {
+        display: block;
+        margin: 0 0 6px;
+        font-size: 12px;
+        color: #5a6d91;
+        font-weight: 700;
+      }
+
+      input[type="text"],
+      input[type="file"] {
+        width: 100%;
+        border: 1px solid #b7cbe8;
+        border-radius: 10px;
+        background: #fff;
+        padding: 10px 12px;
+        font-size: 14px;
+        margin-bottom: 10px;
+      }
+
+      .btn {
+        border: 0;
+        border-radius: 10px;
+        background: linear-gradient(180deg, #2f80db 0%, #225eab 100%);
+        color: #fff;
+        font-weight: 700;
+        font-size: 14px;
+        padding: 10px 14px;
+        cursor: pointer;
+        transition: transform 0.12s ease, box-shadow 0.12s ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 16px rgba(35, 85, 160, 0.22);
+      }
+
+      .btn.secondary {
+        background: linear-gradient(180deg, #6f89ad 0%, #5f7697 100%);
+      }
+
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .note {
+        margin-top: 8px;
+        font-size: 12px;
+        color: var(--warn);
+      }
+
+      .result {
+        margin-top: 10px;
+        border-radius: 10px;
+        background: #f5f9ff;
+        border: 1px solid #d4e2f7;
+        padding: 10px;
+        font-size: 13px;
+        word-break: break-all;
+      }
+
+      .result.ok {
+        border-color: #bae5d6;
+        background: #effbf7;
+      }
+
+      .result.error {
+        border-color: #f0c3c3;
+        background: #fff2f2;
+        color: #8d1f1f;
+      }
+
+      .status {
+        margin-top: 14px;
+        background: #13294a;
+        color: #cde0ff;
+        border-radius: 12px;
+        padding: 10px 12px;
+        font-size: 12px;
+      }
+
+      .status strong {
+        color: #fff;
+      }
+
+      a {
+        color: var(--ink-2);
+      }
+
+      @media (max-width: 920px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        .hero-sub {
+          font-size: 22px;
+        }
+        .hero-title {
+          font-size: 26px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <section class="hero">
+        <div class="hero-head">
+          <img src="https://dart.fss.or.kr/images/header_logo.png" alt="DART Logo" />
+          <h1 class="hero-title">DARToSheeToDART</h1>
+        </div>
+        <p class="hero-sub">신속하고 투명한 전자공시시스템, DARToSheeToDART</p>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <h3>1) 작업 폴더 지정</h3>
+          <p>작업 루트 폴더 URL 또는 ID를 입력하세요. 하위에 source/worksheet/backupsheet/target이 자동 생성됩니다.</p>
+          <label for="folderInput">작업 루트 폴더 URL 또는 ID</label>
+          <input id="folderInput" type="text" placeholder="https://drive.google.com/drive/folders/..." />
+          <button type="button" class="btn" id="btnInit" disabled style="opacity: 0.6; cursor: not-allowed;">작업 폴더 준비</button>
+          <div id="initResult" class="result" style="display:none"></div>
+        </article>
+
+        <article class="card">
+          <h3>2) DSD 업로드 후 워크시트 생성</h3>
+          <p>DSD 파일을 source 폴더에 업로드하고 worksheet/backupsheet를 자동 생성합니다.</p>
+          <label for="fileInput">DSD 파일</label>
+          <input id="fileInput" type="file" accept=".dsd,application/zip" />
+          <div class="row">
+            <button type="button" class="btn" id="btnUpload" disabled style="opacity: 0.6; cursor: not-allowed;">업로드 + 변환 시작</button>
+          </div>
+          <div class="note" id="sizeNote"></div>
+          <div id="uploadResult" class="result" style="display:none"></div>
+        </article>
+
+        <div id="successBanner" style="display:none; grid-column: 1 / -1; background: #e6f4ea; border: 1px solid #ceead6; padding: 15px; border-radius: 8px; margin-bottom: 4px;">
+          <h4 style="margin:0 0 8px; color:#137333;">작업 시트 링크를 저장하십시오.</h4>
+          <p style="margin:0 0 8px; font-size:13px; color:#1e8e3e;">작업 시트는 고객님이 지정한 작업 폴더 내에서 찾을 수 있습니다.</p>
+          <div id="successLinks" style="font-size:14px; font-weight:bold;"></div>
+        </div>
+
+        <article class="card" style="grid-column:1 / -1;">
+          <h3>3) Sheet → DSD 변환 실행</h3>
+          <p>생성된 워크시트 URL 또는 ID를 입력하고 변환을 실행하세요. 결과는 target 폴더에 저장됩니다.</p>
+          <label for="sheetInput">워크시트 URL 또는 ID</label>
+          <input id="sheetInput" type="text" placeholder="https://docs.google.com/spreadsheets/d/..." />
+          <div class="row">
+            <button type="button" class="btn secondary" id="btnConvert" disabled style="opacity: 0.6; cursor: not-allowed;">Sheet → DSD 변환</button>
+          </div>
+          <div id="convertResult" class="result" style="display:none"></div>
+        </article>
+      </section>
+
+      <div class="status" id="statusBox"><strong>상태:</strong> 준비됨</div>
+    </div>
+
+    <script>
+      const INITIAL_SHEET_ID = "<?= initialSheetId ?>";
+      let workspace = null;
+      let boot = null;
+
+      const folderInput = document.getElementById("folderInput");
+      const fileInput = document.getElementById("fileInput");
+      const sheetInput = document.getElementById("sheetInput");
+
+      const btnInit = document.getElementById("btnInit");
+      const btnUpload = document.getElementById("btnUpload");
+      const btnConvert = document.getElementById("btnConvert");
+
+      folderInput.addEventListener("input", validateInitButton);
+      fileInput.addEventListener("change", validateUploadButton);
+      sheetInput.addEventListener("input", validateConvertButton);
+
+      function validateInitButton() {
+        if (folderInput.value.trim().length > 10) {
+          btnInit.disabled = false;
+          btnInit.style.opacity = "1";
+          btnInit.style.cursor = "pointer";
+        } else {
+          btnInit.disabled = true;
+          btnInit.style.opacity = "0.6";
+          btnInit.style.cursor = "not-allowed";
+        }
+      }
+
+      function validateUploadButton() {
+        if (workspace && fileInput.files && fileInput.files.length > 0) {
+          btnUpload.disabled = false;
+          btnUpload.style.opacity = "1";
+          btnUpload.style.cursor = "pointer";
+        } else {
+          btnUpload.disabled = true;
+          btnUpload.style.opacity = "0.6";
+          btnUpload.style.cursor = "not-allowed";
+        }
+      }
+
+      function validateConvertButton() {
+        if (sheetInput.value.trim().length > 10) {
+          btnConvert.disabled = false;
+          btnConvert.style.opacity = "1";
+          btnConvert.style.cursor = "pointer";
+        } else {
+          btnConvert.disabled = true;
+          btnConvert.style.opacity = "0.6";
+          btnConvert.style.cursor = "not-allowed";
+        }
+      }
+
+      btnInit.addEventListener("click", initWorkspace);
+      btnUpload.addEventListener("click", uploadAndConvert);
+      btnConvert.addEventListener("click", convertSheetToDsd);
+
+      google.script.run
+        .withSuccessHandler((data) => {
+          boot = data;
+          document.getElementById("sizeNote").textContent =
+            `안내: DSD 업로드 권장 한계는 약 ${data.maxUploadMbNotice || 50}MB 입니다.`;
+          setStatus(`부트스트랩 로드 완료 (${boot.appName || "DARToSheeToDART"})`);
+
+          // 만약 구글 시트 메뉴를 통해 파라미터가 전달되어 웹앱이 열린 경우 자동 세팅
+          if (INITIAL_SHEET_ID) {
+            sheetInput.value = INITIAL_SHEET_ID;
+            validateConvertButton();
+            document.getElementById("convertResult").style.display = "block";
+            document.getElementById("convertResult").classList.add("ok");
+            document.getElementById("convertResult").innerHTML = "<b>시트 메뉴에서 진입했습니다.</b><br>아래 [Sheet -> DSD 변환] 버튼을 눌러 작업을 계속하세요.";
+            sheetInput.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        })
+        .withFailureHandler(handleError)
+        .getWebAppBootstrap();
+
+      function initWorkspace() {
+        const input = document.getElementById("folderInput").value.trim();
+        if (!input) {
+          return showResult("initResult", "작업 폴더 URL 또는 ID를 입력하세요.", true);
+        }
+
+        setStatus("작업 폴더 구조 생성 중...");
+        google.script.run
+          .withSuccessHandler((res) => {
+            workspace = res;
+            validateUploadButton();
+            showResult(
+              "initResult",
+              "준비 완료\nroot: " + res.rootFolderName +
+                "\nsource: " + res.sourceFolderId +
+                "\nworksheet: " + res.worksheetFolderId +
+                "\nbackupsheet: " + res.backupsheetFolderId +
+                "\ntarget: " + res.targetFolderId
+            );
+            setStatus("작업 폴더 준비 완료");
+          })
+          .withFailureHandler(handleError)
+          .apiCreateWorkspace(input);
+      }
+
+      async function uploadAndConvert() {
+        if (!workspace) {
+          return showResult("uploadResult", "먼저 작업 폴더를 준비하세요.", true);
+        }
+
+        const fileInput = document.getElementById("fileInput");
+        if (!fileInput.files || !fileInput.files.length) {
+          return showResult("uploadResult", "DSD 파일을 선택하세요.", true);
+        }
+
+        const file = fileInput.files[0];
+        setStatus("DSD 업로드 및 워크시트 생성 중...");
+
+        const base64Data = await fileToBase64(file);
+        google.script.run
+          .withSuccessHandler((res) => {
+            sheetInput.value = res.spreadsheetUrl;
+            validateConvertButton();
+            
+            showResult(
+              "uploadResult",
+              "생성 완료\nworksheet: " + res.spreadsheetUrl +
+                "\nbackup: " + res.backupSpreadsheetUrl +
+                "\nsource file: " + res.sourceFileName
+            );
+            
+            const banner = document.getElementById("successBanner");
+            const links = document.getElementById("successLinks");
+            banner.style.display = "block";
+            links.innerHTML = `
+              <div style="margin-bottom: 5px;">
+                📝 <strong>작업 시트:</strong> <a href="${res.spreadsheetUrl}" target="_blank" style="color: #1a73e8; text-decoration: underline;">열기</a>
+              </div>
+              <div>
+                📁 <strong>작업 폴더(worksheet):</strong> <a href="https://drive.google.com/drive/folders/${workspace.worksheetFolderId}" target="_blank" style="color: #1a73e8; text-decoration: underline;">폴더 이동</a>
+              </div>
+            `;
+            
+            setStatus("워크시트 생성 완료");
+          })
+          .withFailureHandler(handleError)
+          .apiUploadDsdAndCreateWorksheet({
+            rootFolderId: workspace.rootFolderId,
+            fileName: file.name,
+            mimeType: file.type || "application/octet-stream",
+            base64Data: base64Data
+          });
+      }
+
+      function convertSheetToDsd() {
+        const sheetInput = document.getElementById("sheetInput").value.trim();
+        if (!sheetInput) {
+          return showResult("convertResult", "워크시트 URL 또는 ID를 입력하세요.", true);
+        }
+
+        setStatus("Sheet -> DSD 변환 중...");
+        google.script.run
+          .withSuccessHandler((res) => {
+            showResult(
+              "convertResult",
+              "변환 완료\n파일명: " + res.fileName +
+                "\n파일 링크: " + res.fileUrl +
+                "\ntarget folder: " + res.folderId
+            );
+            setStatus("Sheet -> DSD 변환 완료");
+          })
+          .withFailureHandler(handleError)
+          .apiConvertSheetToDsd(sheetInput);
+      }
+
+      function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const result = String(e.target.result || "");
+            const idx = result.indexOf(",");
+            resolve(idx >= 0 ? result.slice(idx + 1) : result);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+
+      function showResult(id, text, isError) {
+        const el = document.getElementById(id);
+        el.style.display = "block";
+        el.textContent = text;
+        el.classList.remove("ok", "error");
+        el.classList.add(isError ? "error" : "ok");
+      }
+
+      function setStatus(text) {
+        document.getElementById("statusBox").innerHTML = `<strong>상태:</strong> ${text}`;
+      }
+
+      function handleError(err) {
+        const msg = err?.message ? err.message : String(err);
+        showResult("initResult", msg, true);
+        showResult("uploadResult", msg, true);
+        showResult("convertResult", msg, true);
+        setStatus("오류 발생");
+      }
+    </script>
+  </body>
+</html>
