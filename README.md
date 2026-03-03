@@ -46,6 +46,13 @@ clasp deploy
 - `.clasp.json` 원본 파일은 로컬 전용이며 git 추적 대상에서 제외됩니다.
 - 저장소에는 `.clasp.json.sample`만 포함되어 있으며, 샘플의 `scriptId`를 교체해서 사용하면 됩니다.
 
+#### 히스토리 초기화 운영 수칙
+
+- GitHub 히스토리를 초기화해야 할 때는 먼저 로컬 백업 브랜치를 생성합니다.
+  - 예: `git branch local-history-backup-YYYYMMDD`
+- 백업 브랜치는 **로컬 보관 전용**으로 유지하고 원격에는 푸시하지 않습니다.
+- 원격 초기화 이후 다른 작업 환경에서는 `git fetch --all --prune` 후 `git reset --hard origin/main`으로 재동기화합니다.
+
 ## 사용 방법
 
 ### 1) 웹앱에서 사용하는 방법 (권장)
