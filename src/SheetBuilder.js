@@ -63,7 +63,6 @@ function createSpreadsheetFromSections(parsed, spreadsheetName, originalContents
 
 function renderGuideSheet(sheet, runtimeContext) {
   const webAppUrl = runtimeContext.webAppUrl || "웹앱 URL이 없습니다. (배포 URL 확인 필요)";
-  const testWebAppUrl = "https://script.google.com/macros/s/AKfycby6aHKq7d0_iOkhlF31FjBa5jy4sQI4Ez8Nm6LU2E_DKyRl74PstiiFkX7QtgZHGcV9wA/exec";
   const rows = [
     [CONFIG.APP_NAME],
     ["DART DSD <-> Google Sheets 양방향 변환 작업안내"],
@@ -71,8 +70,6 @@ function renderGuideSheet(sheet, runtimeContext) {
     ["[기본 정보]"],
     ["웹앱 주소"],
     [webAppUrl],
-    ["테스트 웹앱 주소(참고)"],
-    [testWebAppUrl],
     ["현재 작업 시트 주소"],
     [sheet.getParent().getUrl()],
     [""],
@@ -98,8 +95,7 @@ function renderGuideSheet(sheet, runtimeContext) {
     ["- 본 도구는 외부 DB/분석 서버에 입력값을 기록하지 않습니다."],
     ["- 변환에 필요한 정보는 현재 스프레드시트와 사용자 Drive 폴더에만 저장됩니다."],
     ["- [IGNORE] 행은 수식 보조값이므로 삭제 시 문장 수식이 깨질 수 있습니다."],
-    ["- __METADATA__ 및 __BASE__ 시트는 숨김 유지(수정/삭제 금지)."],
-    ["- 금감원 로고는 데모용 요소입니다. 실사용 배포 시 자체 로고로 교체하세요."]
+    ["- __METADATA__ 및 __BASE__ 시트는 숨김 유지(수정/삭제 금지)."]
   ];
 
   sheet.clear();
@@ -110,7 +106,7 @@ function renderGuideSheet(sheet, runtimeContext) {
   sheet.getRange("A16:A16").setFontWeight("bold");
   sheet.getRange("A20:A20").setFontWeight("bold");
   sheet.getRange("A23:A23").setFontWeight("bold");
-  sheet.getRange("A30:A30").setFontWeight("bold");
+  sheet.getRange("A28:A28").setFontWeight("bold");
   sheet.setColumnWidth(1, 900);
   sheet.getRange(1, 1, rows.length, 1).setWrap(true);
   sheet.setFrozenRows(2);
