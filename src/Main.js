@@ -4,7 +4,7 @@ function doGet(e) {
   
   return template.evaluate()
     .setTitle(CONFIG.APP_NAME)
-    .setFaviconUrl("https://dart.fss.or.kr/favicon.ico")
+    .setFaviconUrl("https://www.madup.com/img/favicon.png")
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
