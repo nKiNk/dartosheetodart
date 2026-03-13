@@ -15,6 +15,7 @@ function extractDsd(fileId, options) {
 
   const entryNames = [];
   const contentsCandidates = [];
+  const xmlCandidates = [];
 
   for (let i = 0; i < zippedEntries.length; i += 1) {
     const entry = zippedEntries[i];
@@ -23,11 +24,13 @@ function extractDsd(fileId, options) {
 
     const normalized = normalizeZipEntryName(name);
     if (normalized === "contents.xml") {
-      result.contentsXml = entry.getDataAsString("utf-8");
+      contentsCandidates.unshift(entry);
     } else if (/^contents.*\.xml$/.test(normalized)) {
       contentsCandidates.push(entry);
+    } else if (/\.xml$/.test(normalized)) {
+      xmlCandidates.push(entry);
     } else if (normalized === "meta.xml") {
-      result.metaXml = entry.getDataAsString("utf-8");
+      result.metaXml = readXmlBlobFlexible(entry);
     } else {
       result.resources.push(entry);
     }
@@ -37,10 +40,18 @@ function extractDsd(fileId, options) {
     result.contentsXml = chooseBestContentsXml(contentsCandidates);
   }
 
+  if (!result.contentsXml && xmlCandidates.length > 0) {
+    result.contentsXml = chooseBestContentsXml(xmlCandidates);
+  }
+
   if (opts.sourceFolderId) {
-    const extractedInfo = persistUnzippedEntries(opts.sourceFolderId, file.getName(), zippedEntries);
-    result.unzippedFolderId = extractedInfo.folderId;
-    result.unzippedFolderUrl = extractedInfo.folderUrl;
+    try {
+      const extractedInfo = persistUnzippedEntries(opts.sourceFolderId, file.getName(), zippedEntries);
+      result.unzippedFolderId = extractedInfo.folderId;
+      result.unzippedFolderUrl = extractedInfo.folderUrl;
+    } catch (error) {
+      Logger.log("UNZIP_PERSIST_WARN: " + String(error));
+    }
   }
 
   if (!result.contentsXml) {
@@ -67,7 +78,7 @@ function normalizeZipEntryName(name) {
 function chooseBestContentsXml(candidates) {
   let fallback = "";
   for (let i = 0; i < candidates.length; i += 1) {
-    const xml = candidates[i].getDataAsString("utf-8");
+    const xml = readXmlBlobFlexible(candidates[i]);
     if (!fallback) {
       fallback = xml;
     }
@@ -76,6 +87,24 @@ function chooseBestContentsXml(candidates) {
     }
   }
   return fallback;
+}
+
+function readXmlBlobFlexible(blob) {
+  const charsets = ["utf-8", "euc-kr", "x-windows-949"];
+  for (let i = 0; i < charsets.length; i += 1) {
+    try {
+      const text = blob.getDataAsString(charsets[i]);
+      if (text && text.trim()) {
+        return text;
+      }
+    } catch (error) {
+    }
+  }
+  try {
+    return blob.getDataAsString();
+  } catch (error) {
+    return "";
+  }
 }
 
 function looksLikeContentsXml(xml) {
