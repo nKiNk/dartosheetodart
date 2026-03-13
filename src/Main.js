@@ -118,7 +118,9 @@ function apiUploadDsdAndCreateWorksheet(payload) {
   const fileBlob = Utilities.newBlob(Utilities.base64Decode(payload.base64Data), mimeType, payload.fileName);
   const sourceFile = workspace.sourceFolder.createFile(fileBlob);
 
-  const extracted = extractDsd(sourceFile.getId());
+  const extracted = extractDsd(sourceFile.getId(), {
+    sourceFolderId: workspace.sourceFolder.getId()
+  });
   const parsed = parseDsdStructure(extracted.contentsXml);
 
   const spreadsheetName = sourceFile.getName().replace(/\.dsd$/i, "") + "_변환";
@@ -132,7 +134,9 @@ function apiUploadDsdAndCreateWorksheet(payload) {
     targetFolderId: workspace.targetFolder.getId(),
     sourceFileId: sourceFile.getId(),
     sourceFileName: sourceFile.getName(),
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    unzippedFolderId: extracted.unzippedFolderId || "",
+    unzippedFolderUrl: extracted.unzippedFolderUrl || ""
   };
 
   const templateId = PropertiesService.getScriptProperties().getProperty("TEMPLATE_SPREADSHEET_ID") || CONFIG.TEMPLATE_SPREADSHEET_ID || "";
@@ -154,6 +158,8 @@ function apiUploadDsdAndCreateWorksheet(payload) {
     spreadsheetUrl: spreadsheet.getUrl(),
     sourceFileId: sourceFile.getId(),
     sourceFileName: sourceFile.getName(),
+    unzippedFolderId: extracted.unzippedFolderId || "",
+    unzippedFolderUrl: extracted.unzippedFolderUrl || "",
     backupSpreadsheetId: backupFile.getId(),
     backupSpreadsheetUrl: backupFile.getUrl(),
     targetFolderId: workspace.targetFolder.getId()
