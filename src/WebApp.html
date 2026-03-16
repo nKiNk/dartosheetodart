@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="ko">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DARToSheeToDART</title>
+    <base target="_top" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
       :root {
         --ink: #0a2a66;
@@ -366,42 +365,81 @@
         }
 
         const file = fileInput.files[0];
-        setStatus("DSD 업로드 및 워크시트 생성 중...");
+        setStatus("DSD 파싱 중 (브라우저 압축해제)...");
 
-        const base64Data = await fileToBase64(file);
-        google.script.run
-          .withSuccessHandler((res) => {
-            sheetInput.value = res.spreadsheetUrl;
-            validateConvertButton();
+        try {
+          const zipData = await JSZip.loadAsync(file);
+          let contentsXml = "";
+          let metaXml = "";
+          
+          for (let name in zipData.files) {
+            const entry = zipData.files[name];
+            if (entry.dir) continue;
             
-            showResult(
-              "uploadResult",
-              "생성 완료\nworksheet: " + res.spreadsheetUrl +
-                "\nbackup: " + res.backupSpreadsheetUrl +
-                "\nsource file: " + res.sourceFileName
-            );
-            
-            const banner = document.getElementById("successBanner");
-            const links = document.getElementById("successLinks");
-            banner.style.display = "block";
-            links.innerHTML = `
-              <div style="margin-bottom: 5px;">
-                📝 <strong>작업 시트:</strong> <a href="${res.spreadsheetUrl}" target="_blank" style="color: #1a73e8; text-decoration: underline;">열기</a>
-              </div>
-              <div>
-                📁 <strong>작업 폴더(worksheet):</strong> <a href="https://drive.google.com/drive/folders/${workspace.worksheetFolderId}" target="_blank" style="color: #1a73e8; text-decoration: underline;">폴더 이동</a>
-              </div>
-            `;
-            
-            setStatus("워크시트 생성 완료");
-          })
-          .withFailureHandler(handleError)
-          .apiUploadDsdAndCreateWorksheet({
-            rootFolderId: workspace.rootFolderId,
-            fileName: file.name,
-            mimeType: file.type || "application/octet-stream",
-            base64Data: base64Data
-          });
+            const lowerName = name.toLowerCase();
+            if (lowerName.includes("contents.xml") || (lowerName.includes("contents") && lowerName.includes(".xml"))) {
+              contentsXml = await extractTextRobustly(entry);
+            } else if (lowerName.includes("meta.xml")) {
+              metaXml = await extractTextRobustly(entry);
+            }
+          }
+
+          if (!contentsXml) {
+            throw new Error("contents.xml 파일을 찾을 수 없습니다.");
+          }
+
+          setStatus("DSD 파일 업로드 및 워크시트 생성 중...");
+
+          const base64Data = await fileToBase64(file);
+          
+          google.script.run
+            .withSuccessHandler((res) => {
+              sheetInput.value = res.spreadsheetUrl;
+              validateConvertButton();
+              
+              showResult(
+                "uploadResult",
+                "생성 완료\\nworksheet: " + res.spreadsheetUrl +
+                  "\\nbackup: " + res.backupSpreadsheetUrl +
+                  "\\nsource file: " + res.sourceFileName
+              );
+              
+              const banner = document.getElementById("successBanner");
+              const links = document.getElementById("successLinks");
+              banner.style.display = "block";
+              links.innerHTML = `
+                <div style="margin-bottom: 5px;">
+                  📝 <strong>작업 시트:</strong> <a href="${res.spreadsheetUrl}" target="_blank" style="color: #1a73e8; text-decoration: underline;">열기</a>
+                </div>
+                <div>
+                  📁 <strong>작업 폴더(worksheet):</strong> <a href="https://drive.google.com/drive/folders/${workspace.worksheetFolderId}" target="_blank" style="color: #1a73e8; text-decoration: underline;">폴더 이동</a>
+                </div>
+              `;
+              
+              setStatus("워크시트 생성 완료");
+            })
+            .withFailureHandler(handleError)
+            .apiUploadDsdAndCreateWorksheet({
+              rootFolderId: workspace.rootFolderId,
+              fileName: file.name,
+              mimeType: file.type || "application/zip",
+              base64Data: base64Data,
+              extractedContentsXml: contentsXml,
+              extractedMetaXml: metaXml
+            });
+        } catch (error) {
+          handleError(error);
+        }
+      }
+
+      async function extractTextRobustly(zipEntry) {
+        try {
+          const rawBytes = await zipEntry.async("uint8array");
+          const decoder = new TextDecoder("utf-8");
+          return decoder.decode(rawBytes);
+        } catch (e) {
+          return await zipEntry.async("string");
+        }
       }
 
       function convertSheetToDsd() {

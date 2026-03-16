@@ -109,21 +109,45 @@ function apiCreateWorkspace(parentFolderInput) {
 }
 
 function apiUploadDsdAndCreateWorksheet(payload) {
-  if (!payload || !payload.rootFolderId || !payload.fileName || !payload.base64Data) {
+  if (!payload || !payload.rootFolderId || !payload.fileName || (!payload.base64Data && !payload.extractedContentsXml)) {
     throw new Error("업로드 요청 값이 부족합니다.");
   }
 
   const workspace = ensureWorkspaceFolders(DriveApp.getFolderById(payload.rootFolderId));
   const mimeType = "application/zip";
-  const fileBlob = Utilities.newBlob(Utilities.base64Decode(payload.base64Data), mimeType, payload.fileName);
-  const sourceFile = workspace.sourceFolder.createFile(fileBlob);
+  
+  let sourceFileId = "";
+  let sourceFileName = payload.fileName;
+  let unzippedFolderId = "";
+  let unzippedFolderUrl = "";
+  
+  if (payload.base64Data) {
+    const fileBlob = Utilities.newBlob(Utilities.base64Decode(payload.base64Data), mimeType, payload.fileName);
+    const sourceFile = workspace.sourceFolder.createFile(fileBlob);
+    sourceFileId = sourceFile.getId();
+    sourceFileName = sourceFile.getName();
+    
+    if (!payload.extractedContentsXml) {
+      try {
+        const extracted = extractDsd(sourceFile.getId(), {
+          sourceFolderId: workspace.sourceFolder.getId()
+        });
+        payload.extractedContentsXml = extracted.contentsXml;
+        unzippedFolderId = extracted.unzippedFolderId || "";
+        unzippedFolderUrl = extracted.unzippedFolderUrl || "";
+      } catch (err) {
+        Logger.log("Server unzip failed: " + err);
+      }
+    }
+  }
 
-  const extracted = extractDsd(sourceFile.getId(), {
-    sourceFolderId: workspace.sourceFolder.getId()
-  });
-  const parsed = parseDsdStructure(extracted.contentsXml);
+  if (!payload.extractedContentsXml) {
+    throw new Error("contents.xml 데이터를 찾을 수 없습니다. 브라우저/서버 압축 해제에 모두 실패했습니다.");
+  }
 
-  const spreadsheetName = sourceFile.getName().replace(/\.dsd$/i, "") + "_변환";
+  const parsed = parseDsdStructure(payload.extractedContentsXml);
+
+  const spreadsheetName = sourceFileName.replace(/\.dsd$/i, "") + "_변환";
   const runtimeContext = {
     appName: CONFIG.APP_NAME,
     webAppUrl: ScriptApp.getService().getUrl() || "",
@@ -132,15 +156,15 @@ function apiUploadDsdAndCreateWorksheet(payload) {
     worksheetFolderId: workspace.worksheetFolder.getId(),
     backupsheetFolderId: workspace.backupsheetFolder.getId(),
     targetFolderId: workspace.targetFolder.getId(),
-    sourceFileId: sourceFile.getId(),
-    sourceFileName: sourceFile.getName(),
+    sourceFileId: sourceFileId,
+    sourceFileName: sourceFileName,
     createdAt: new Date().toISOString(),
-    unzippedFolderId: extracted.unzippedFolderId || "",
-    unzippedFolderUrl: extracted.unzippedFolderUrl || ""
+    unzippedFolderId: unzippedFolderId,
+    unzippedFolderUrl: unzippedFolderUrl
   };
 
   const templateId = PropertiesService.getScriptProperties().getProperty("TEMPLATE_SPREADSHEET_ID") || CONFIG.TEMPLATE_SPREADSHEET_ID || "";
-  const spreadsheet = createSpreadsheetFromSections(parsed, spreadsheetName, extracted.contentsXml, runtimeContext, templateId, workspace.worksheetFolder);
+  const spreadsheet = createSpreadsheetFromSections(parsed, spreadsheetName, payload.extractedContentsXml, runtimeContext, templateId, workspace.worksheetFolder);
   const spreadsheetFile = DriveApp.getFileById(spreadsheet.getId());
   
   if (!templateId) {
