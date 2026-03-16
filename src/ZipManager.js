@@ -1,8 +1,14 @@
 function extractDsd(fileId, options) {
   const file = DriveApp.getFileById(fileId);
   const blob = file.getBlob();
-  const zipBlob = Utilities.newBlob(blob.getBytes(), "application/zip", file.getName());
-  const zippedEntries = Utilities.unzip(zipBlob);
+  
+  let zippedEntries = [];
+  try {
+    const zipBlob = Utilities.newBlob(blob.getBytes(), "application/zip", file.getName());
+    zippedEntries = Utilities.unzip(zipBlob);
+  } catch (unzipError) {
+    throw new Error("DSD 압축 해제 실패. 손상된 파일이거나 접근 권한이 없는 파일(로그인 HTML 등)입니다: " + unzipError.toString());
+  }
   const opts = options || {};
 
   const result = {
