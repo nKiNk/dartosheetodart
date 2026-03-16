@@ -114,7 +114,7 @@ function apiUploadDsdAndCreateWorksheet(payload) {
   }
 
   const workspace = ensureWorkspaceFolders(DriveApp.getFolderById(payload.rootFolderId));
-  const mimeType = payload.mimeType || "application/octet-stream";
+  const mimeType = "application/zip";
   const fileBlob = Utilities.newBlob(Utilities.base64Decode(payload.base64Data), mimeType, payload.fileName);
   const sourceFile = workspace.sourceFolder.createFile(fileBlob);
 

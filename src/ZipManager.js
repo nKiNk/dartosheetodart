@@ -1,7 +1,7 @@
 function extractDsd(fileId, options) {
   const file = DriveApp.getFileById(fileId);
   const blob = file.getBlob();
-  const zipBlob = blob.copyBlob().setContentType("application/zip");
+  const zipBlob = Utilities.newBlob(blob.getBytes(), "application/zip", file.getName());
   const zippedEntries = Utilities.unzip(zipBlob);
   const opts = options || {};
 
